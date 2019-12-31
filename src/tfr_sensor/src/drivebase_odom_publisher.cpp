@@ -62,14 +62,14 @@ class DrivebaseOdometryPublisher
         boost::function<void(const std_msgs::Float64&)> rightTreadCallback = [this](const std_msgs::Float64& msg) {this->rightTreadSpeed = msg.data; };
         
 
-		leftTreadDistanceSub = n.subscribe<std_msgs::Float64>("/left_tread_distance", 15, leftTreadCallback);
+	leftTreadDistanceSub = n.subscribe<std_msgs::Float64>("/left_tread_distance", 15, leftTreadCallback);
         rightTreadDistanceSub = n.subscribe<std_msgs::Float64>("/right_tread_distance", 15, rightTreadCallback);
         
         //odometry_publisher: publish to the location of the base_footprint tracked by tread motion.
         odometry_publisher = n.advertise<nav_msgs::Odometry>("/drivebase_odom", 15); 
         
         ///set_drivebase_odometry : resets the basis of odometry to a new position
-        set_odometry = n.advertiseService("set_drivebase_odometry", &DrivebaseOdometryPublisher::setOdometry, this);
+        set_odometry = n.aWhdvertiseService("set_drivebase_odometry", &DrivebaseOdometryPublisher::setOdometry, this);
         reset_odometry = n.advertiseService("reset_drivebase_odometry", &DrivebaseOdometryPublisher::resetOdometry, this);
         angle.x = 0;
         angle.y = 0;
@@ -104,11 +104,13 @@ class DrivebaseOdometryPublisher
         }
 
         //basic differential kinematics to get combined velocities
-        double v_ang = (rightTreadSpeed-leftTreadSpeed)/wheel_span;
-        double v_lin = (rightTreadSpeed+leftTreadSpeed)/2;
+ 	double v_right = 1/d_t * rightTreadSpeed; //TODO rename these to TreadDistance instead of TreadSpeed
+	double v_left = 1/d_t * leftTreadSpeed;
+	double v_ang = (v_right - v_left) / wheel_span;
+        double v_lin = (v_right + v_left)/2;
         
         //break into xy components and increment
-        double d_angle = v_ang * d_t;
+        double d_angle = v_ang * d_t; 
         rotateQuaternionByYaw(angle, d_angle);
 
         // yaw (z-axis rotation)
@@ -300,13 +302,13 @@ int main(int argc, char **argv)
     double rate; //rate: how quickly to publish hz.
     ros::param::param<std::string>("~parent_frame", parent_frame, "odom");
     ros::param::param<std::string>("~child_frame", child_frame, "base_footprint");
-    ros::param::param<double>("~wheel_span", wheel_span, 0.645);
-    ros::param::param<double>("~rate", rate, 10.0);
+    ros::param::param<double>("~wheel_span", wheel_span, 0.5715); // TODO: Get a more accurate wheelspan and define it in one spot.  This value is very important to our turning accuracy from encoders. 
+    ros::param::param<double>("~rate", rate, 32.0); //Higher than 32 hz causes frames to get missed. Need to figure out why because the ideal value would be 64 for 1 cm resolution. ALthough 2cm is not bad. 
     DrivebaseOdometryPublisher publisher{n, parent_frame, child_frame, wheel_span};
     ros::Rate loop_rate(rate);
     while(ros::ok())
     {
-        publisher.processOdometry(); //arduino readings are published across the network
+        publisher.processOdometry(); //readings are published across the network
         ros::spinOnce();
         loop_rate.sleep();
 
