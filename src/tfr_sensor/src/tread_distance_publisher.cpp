@@ -10,8 +10,10 @@ TreadDistance::TreadDistance(const int ticksPerRevolution, const int maxTicks, c
 
 void TreadDistance::updateFromNewCount(const int newCount) {
     auto ticksMoved = calcTickDiff(newCount);
-    distanceTraveled = (wheelRadius * ticksMoved) / ticksPerRevolution;
-    prevTickCount = newCount;
+    double pi = 3.1415926;
+    double wheelCircumference= 2 * pi * wheelRadius; 
+    distanceTraveled = (wheelCircumference * ticksMoved) / ticksPerRevolution; //Distance is the circumference times the ratio of ticks moved/ ticks in one revolution.
+    prevTickCount = newCount; //Only interested in the tick change
 }
 
 
@@ -54,7 +56,7 @@ int main(int argc, char** argv) {
     auto leftTreadCountSub = n.subscribe<std_msgs::Int32>("/left_tread_count", 10, leftTreadCallback);
     auto rightTreadCountSub = n.subscribe<std_msgs::Int32>("/right_tread_count", 10, rightTreadCallback);
     
-    ros::param::param<double>("~rate", rate, 10.0);
+    ros::param::param<double>("~rate", rate, 64); //Should not exceed CAN controller rate TODO: Have this defined in one place. 
     ros::Rate loop_rate(rate);
     while (ros::ok()) {
         ros::spinOnce();
