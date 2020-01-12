@@ -22,7 +22,7 @@
     <node name="teleop_action_server" pkg="tfr_executive" type="teleop_action_server" output="screen">
         <rosparam>
             linear_velocity: 2.0
-            angular_velocity: 0.8
+            angular_velocity: 1.8
             use_digging: true
             arm_lower_effort: 500
             arm_upper_effort: 500
