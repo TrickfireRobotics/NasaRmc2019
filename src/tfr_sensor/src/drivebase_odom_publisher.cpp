@@ -106,8 +106,10 @@ class DrivebaseOdometryPublisher
         }
 
         //basic differential kinematics to get combined velocities
-        double v_ang = (rightTreadDistance-leftTreadDistance)/wheel_span;
-        double v_lin = (rightTreadDistance+leftTreadDistance)/2;
+	double v_right = rightTreadDistance/d_t;
+	double v_left = leftTreadDistance/d_t;
+	double v_ang = (v_right - v_left) / wheel_span;
+        double v_lin = (v_right + v_left)/2;
 
         //zero out aggregate distances
         rightTreadDistance = 0;
@@ -306,8 +308,8 @@ int main(int argc, char **argv)
     double rate; //rate: how quickly to publish hz.
     ros::param::param<std::string>("~parent_frame", parent_frame, "odom");
     ros::param::param<std::string>("~child_frame", child_frame, "base_footprint");
-    ros::param::param<double>("~wheel_span", wheel_span, 0.645);
-    ros::param::param<double>("~rate", rate, 10.0);
+    ros::param::param<double>("~wheel_span", wheel_span, 0.7112);
+    ros::param::param<double>("~rate", rate, 32);
     DrivebaseOdometryPublisher publisher{n, parent_frame, child_frame, wheel_span};
     ros::Rate loop_rate(rate);
     while(ros::ok())
