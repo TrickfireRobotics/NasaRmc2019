@@ -1,7 +1,6 @@
 <launch>
-    <!--This is the main node for sensor fusion, currently we have it set to ukf(quality data), but ekf(faster) is also an option-->
-    <!--I have not tested the differences or at all attempted to compare the two, I just made a guess //TODO-->
-    <node name="sensor_fusion" pkg="robot_localization" type="ukf_localization_node"  clear_params="true" output="screen">
+    <!--This is the main node for sensor fusion, currently we have it set to ekf(faster).  It works just as well as ukf but at a lower resource cost-->
+    <node name="sensor_fusion" pkg="robot_localization" type="ekf_localization_node"  clear_params="true" output="screen">
         <rosparam command="load" file="$(find tfr_sensor)/params/fusion.yaml" />
     </node> 
 </launch>
