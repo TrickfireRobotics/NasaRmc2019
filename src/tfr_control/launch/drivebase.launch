@@ -1,6 +1,6 @@
 <launch>
     <node pkg="tfr_control" type="drivebase" name="drivebase">
-        <param name="wheel_span"  value="0.7366"/> 
+        <param name="wheel_span"  value="0.7112"/> 
         <param name="wheel_radius" value="0.15"/> 
     </node>
 </launch>
