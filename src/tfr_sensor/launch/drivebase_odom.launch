@@ -5,14 +5,14 @@
         <rosparam>
             maxTicks: 2147483647 
             ticksPerRevolution: 5120 //The encoder is 32 PPR, but the motor controller multiplies by 4. Gear ratio is 40:1 for output shaft.  128 * 40 = 5120.  
-            wheelRadius: .15 //TODO: Define this in one place
+            wheelRadius: 0.15 
         </rosparam>
     </node>
     <node name="drivebase_odom_publisher" pkg="tfr_sensor" type="drivebase_odom_publisher" output="screen">
         <rosparam>
             parent_frame: odom
             child_frame: base_footprint
-            wheel_span: 0.5715 //TODO: Define this in one place
+            wheel_span: 0.7712
         </rosparam>
     </node>
 </launch>
