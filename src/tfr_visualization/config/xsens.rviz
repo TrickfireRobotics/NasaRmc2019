@@ -76,7 +76,7 @@ Visualization Manager:
       Enabled: true
       History Length: 1
       Name: Imu
-      Topic: /mti/sensor/imu
+      Topic: /sensors/imu
       Unreliable: false
       Value: true
   Enabled: true
