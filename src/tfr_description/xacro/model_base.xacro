@@ -303,7 +303,7 @@
     <!-- test -->
     <inertial>
       <mass value="1.0" />
-      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
     </inertial>
   </link>
   <joint name="bin_joint" type="revolute">
@@ -405,30 +405,6 @@
   <joint name="bin_slope_joint" type="fixed">
     <parent link="bin_back" />
     <child link="bin_slope" />
-    <origin xyz="0 0 ${(12-9.88) * itom}" rpy="0 ${-pi/4} 0"/>
-  </joint>
-  <link name="bin_slope_2" >
-    <visual>
-      <geometry>
-        <box size="${0.125*itom} ${bin_width} ${bin_height*sqrt2}" />
-      </geometry>
-      <origin xyz="${bin_back_offset} 0 0"/>
-    </visual>
-    <collision>
-      <geometry>
-        <box size="${0.125*itom} ${bin_width} ${bin_height*sqrt2}" />
-      </geometry>
-      <origin xyz=" ${bin_back_offset}  0 0"/>
-    </collision>
-    <!-- test -->
-    <inertial>
-      <mass value="1.0" />
-      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
-    </inertial>
-  </link>
-  <joint name="bin_slope_2_joint" type="fixed">
-    <parent link="bin_back" />
-    <child link="bin_slope_2" />
-    <origin xyz="0  0 ${(12-9.88) * itom}" rpy="0 -0.105 0"/>
+    <origin xyz="0 0 ${-0.30* itom}" rpy="0 ${-pi/4} 0"/>
   </joint>
 </robot>
