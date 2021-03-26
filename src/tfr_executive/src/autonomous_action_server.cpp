@@ -39,6 +39,7 @@
  * */
 #include <ros/ros.h>
 #include <ros/console.h>
+#include <std_msgs/UInt16.h>
 #include <tfr_msgs/EmptyAction.h>
 #include <tfr_msgs/DurationSrv.h>
 #include <tfr_msgs/LocalizationAction.h>
@@ -58,9 +59,11 @@ class AutonomousExecutive
 {
     public:
         AutonomousExecutive(ros::NodeHandle &n,double f):
+            batteryVoltageSubscriber{nh.subscribe("/device8/get_qry_volts/v_bat", 5, &DiggingActionServer::batteryVoltageCallback, this)},        
             server{n, "autonomous_action_server", 
                 boost::bind(&AutonomousExecutive::autonomousMission, this, _1),
                 false},
+           
             localizationClient{n, "localize", true},
             navigationClient{n, "navigate", true},
             diggingClient{n, "dig", true},
@@ -156,6 +159,18 @@ class AutonomousExecutive
          * Upon successfully completing the goal sever will be set to succeed.
          * Upon failure server will be set to aborted
          */ 
+    
+        ros::Subscriber batteryVoltageSubscriber;
+    
+        void batteryVoltageCallback(const std_msgs::UInt16& batteryVoltage) {
+            //Roboteq controller sends voltage * 10 back i.e. if 150 is reported than it is 15 volts
+            int batteryVolt = batteryVoltage.data / 10;
+            //if battery voltage is below 30 than it needs to be charged
+            if (batteryVolt < 37) {
+                ROS_ERROR("BATTERY LOW! CHARGE NOW! (%d volts)\n", batteryVolt);
+            }
+        }
+    
         void autonomousMission(const tfr_msgs::EmptyGoalConstPtr &goal)
         {
             
