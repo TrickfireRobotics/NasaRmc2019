@@ -172,14 +172,15 @@ class Localizer
                 ROS_INFO("Localization Action Server: turning");
 
                 geometry_msgs::Twist cmd;
-                cmd.angular.z = turn_velocity;
-                cmd_publisher.publish(cmd);
-                ros::Duration(turn_duration).sleep();
-                ROS_INFO("Localization Action Server: stopping");
+                cmd.angular.z = turn_velocity; 
+                cmd_publisher.publish(cmd); 
+                //Removed the below to try and continuously spin until we localize
+              //  ros::Duration(turn_duration).sleep(); 
+              //  ROS_INFO("Localization Action Server: stopping");
 
-                cmd.angular.z = 0;
-                cmd_publisher.publish(cmd);
-                ros::Duration(turn_duration).sleep();
+               // cmd.angular.z = 0;
+                //cmd_publisher.publish(cmd);
+                //ros::Duration(0.5).sleep(); //This pause seems way too long so I shortened it
             }
 
             if (success)
@@ -199,7 +200,7 @@ class Localizer
                 result = sendAruco(image_wrapper);
             ROS_INFO("Localization Action Server: rearcam %d", result->number_found);
 
-            //front camera
+            //front camera 
             if (result != nullptr && result->number_found == 0 && front_cam_client.call(image_wrapper))
                 result = sendAruco(image_wrapper);
             ROS_INFO("Localization Action Server: frontcam %d", result->number_found);

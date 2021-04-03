@@ -70,11 +70,13 @@ class TFR_Aruco {
             // the image is stored at imageHolder->image
             cv_bridge::CvImagePtr imageHolder;
             try {
-                imageHolder = cv_bridge::toCvCopy(goal->image, sensor_msgs::image_encodings::BGR8);
-            } catch (cv_bridge::Exception& e) {
-                ROS_ERROR("cv_bridge exception: %s", e.what());
+                imageHolder = cv_bridge::toCvCopy(goal->image);
+            } 
+            
+            catch (cv_bridge::Exception& e) {
+                ROS_ERROR("I HATE ROBOTS cv_bridge exception: %s", e.what());
                 return;
-            }
+            } 
 
 
             // detect fiducial markers
@@ -84,7 +86,7 @@ class TFR_Aruco {
             cv::aruco::detectMarkers(imageHolder->image, dictionary, markerCorners, markerIds, params);
             
             #ifdef DRAW_MARKERS
-            cv_bridge::CvImagePtr drawnImageHolder = cv_bridge::toCvCopy(goal->image, sensor_msgs::image_encodings::BGR8);
+            cv_bridge::CvImagePtr drawnImageHolder = cv_bridge::toCvCopy(goal->image);
             cv::aruco::drawDetectedMarkers(drawnImageHolder->image, markerCorners, markerIds);
             drawnMarkerPublisher.publish(drawnImageHolder->toImageMsg());
             #endif
@@ -133,7 +135,7 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "aruco_action_server");
     ros::NodeHandle n{};
     TFR_Aruco aruco{n};
-    ros::Rate rate(10);
+    ros::Rate rate(16);
     while(ros::ok()){
         ros::spinOnce();
         rate.sleep();

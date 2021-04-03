@@ -1,10 +1,10 @@
 <launch>
     <node name="realsense_tf_broadcaster" pkg="tf2_ros" type="static_transform_publisher"
-        args="0.48 0 0.127 0 0 0 1 base_link camera_link"/>
+        args="0.48 0.02 0.005 0 0 0 1 base_link camera_link"/>
     <include file="$(find realsense2_camera)/launch/rs_camera.launch">
         <arg name="align_depth" value="true"/>
         <arg name="enable_infra1" value="false"/>
-        <arg name="infra_fps"     value="30"/>
+        <arg name="infra_fps"     value="15"/>
         <arg name="enable_infra2" value="false"/>
         <arg name="initial_reset" value="true"/>
         <arg name="depth_fps"     value="15"/>
@@ -14,5 +14,7 @@
         <arg name="enable_color"  value="true"/>
         <arg name="color_fps"  value="15"/>
         <arg name="filters" value="pointcloud"/>
+        <arg name="gyro_fps"  value="1"/>
+        <arg name="accel_fps"  value="1"/>
     </include>
 </launch>

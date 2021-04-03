@@ -2,9 +2,9 @@
     <!--spins up a settable broadcaster for the location of the bin-->
     <node name="localization_action_server" pkg="tfr_localization" output="screen" type="localization_action_server">
         <rosparam>
-            turn_velocity: 0.15
-            turn_duration: 3.6
-            yaw_threshold: .4
+            turn_velocity: 0.6
+            turn_duration: 1.0
+            yaw_threshold: 0.10
         </rosparam>
     </node>
     <include file="$(find tfr_localization)/launch/bin_broadcaster.launch"/>

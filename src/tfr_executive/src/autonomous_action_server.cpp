@@ -172,7 +172,7 @@ class AutonomousExecutive
             if (LOCALIZATION_TO)
             {
                 ROS_INFO("Autonomous Action Server: commencing Localization To");
-                localize(true, 0);
+                localize(false, 0);
                 ROS_INFO("Autonomous Action Server: finished Localization To");
             }
 
@@ -392,7 +392,7 @@ class AutonomousExecutive
                 ROS_INFO("Autonomous Action Server: stabilized odometry");
                 std_srvs::Empty empty;
                 ros::service::call("/reset_fusion", empty);
-            }
+           }
             ROS_INFO("Autonomous Action Server: forward localization");
             geometry_msgs::Twist vel;
             vel.linear.x = 0.25;

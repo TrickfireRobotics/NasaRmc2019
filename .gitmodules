@@ -1,9 +1,6 @@
 [submodule "src/ros_realsense/realsense"]
 	path = src/ros_realsense/realsense
 	url = https://github.com/intel-ros/realsense.git
-[submodule "src/cv_camera"]
-	path = src/cv_camera
-	url = https://github.com/OTL/cv_camera.git
 [submodule "timesync"]
 	path = src/timesync
 	url = https://github.com/larics/timesync.git
@@ -15,3 +12,6 @@
 [submodule "src/kacanopen"]
 	path = src/kacanopen
 	url = https://github.com/TrickfireRobotics/kacanopen
+[submodule "src/cv_camera"]
+	path = src/cv_camera
+	url = https://github.com/TrickfireRobotics/cv_camera

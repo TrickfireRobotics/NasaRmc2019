@@ -20,7 +20,7 @@ const std::string busname = "can1";
 // "1M", "500K", "125K", "100K", "50K", "20K", "10K" and "5K".
 const std::string baudrate = "250K";
 
-const size_t num_devices_required = 5;
+const size_t num_devices_required = 4;
 
 const double loop_rate = 32; // 32 Hz
 const int slow_loop_rate = 1; // 1 Hz
@@ -103,6 +103,15 @@ void setupServoCylinderDevice(kaco::Device& device, kaco::Bridge& bridge, std::s
     
     auto iosub_7 = std::make_shared<kaco::EntrySubscriber>(device, "profile_deceleration");
     bridge.add_subscriber(iosub_7);
+
+    auto iopub_8 = std::make_shared<kaco::EntryPublisher>(device, "position_demand");
+    bridge.add_publisher(iopub_8, slow_loop_rate);
+
+    auto iopub_9 = std::make_shared<kaco::EntryPublisher>(device, "positioning_option_code");
+    bridge.add_publisher(iopub_9, slow_loop_rate);
+    
+    auto iosub_9 = std::make_shared<kaco::EntrySubscriber>(device, "positioning_option_code");
+    bridge.add_subscriber(iosub_9);
 }
 
 void setupMaxonDevice(kaco::Device& device, kaco::Bridge& bridge, std::string& eds_files_path)
@@ -141,7 +150,10 @@ void setupMaxonDevice(kaco::Device& device, kaco::Bridge& bridge, std::string& e
 
     auto iopub_2 = std::make_shared<kaco::EntryPublisher>(device, "torque_actual_values/torque_actual_value_averaged");
     bridge.add_publisher(iopub_2, loop_rate);
-    
+
+    auto iopub_3 = std::make_shared<kaco::EntryPublisher>(device, "velocity_actual_values/velocity_actual_value_averaged");
+    bridge.add_publisher(iopub_3, loop_rate);
+
 }
 
 // Usage: e.g. intToHexString(10) == "A"

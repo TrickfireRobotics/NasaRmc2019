@@ -11,18 +11,18 @@
     <node name="autnonomous_action_server" pkg="tfr_executive" type="autonomous_action_server" output="screen">
         <rosparam>
             localization_to: true 
-            navigation_to: true 
-            digging: true 
+            navigation_to: true
+            digging: false 
             localization_from: true
             navigation_from: true
             localization_finish: true
-            dumping: true 
+            dumping: false 
         </rosparam>
     </node>
     <node name="teleop_action_server" pkg="tfr_executive" type="teleop_action_server" output="screen">
         <rosparam>
-            linear_velocity: 0.50
-            angular_velocity: 1.5
+            linear_velocity: 0.4
+            angular_velocity: 1.2
             use_digging: true
             arm_lower_effort: 500
             arm_upper_effort: 500

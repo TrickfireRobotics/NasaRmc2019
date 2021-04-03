@@ -173,11 +173,11 @@ private:
         switch(goal)
         {
             case(tfr_utilities::LocationCode::MINING): //navigating to mining area
-                nav_goal.target_pose.pose.position.y = -constraints.get_safe_mining_distance();
+                nav_goal.target_pose.pose.position.x = constraints.get_safe_mining_distance();
                 nav_goal.target_pose.pose.position.z = height_adjustment;
                 
                 nav_goal.target_pose.pose.orientation.w = 1; //No rotation
-                quat.setRPY(0, 0, -3.14/2); //(roll, pitch, yaw)
+                quat.setRPY(0, 0, 0); //(roll, pitch, yaw)
                 
                 //convert quaternion from tf datatype to msg datatype 
                 tf2::convert(quat, nav_goal.target_pose.pose.orientation); 

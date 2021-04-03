@@ -81,7 +81,7 @@ int main(int argc, char **argv)
     ros::param::param<std::string>("~camera_topic", camera_topic, "");
     ros::param::param<std::string>("~service_name", service_name, "");
     ImageWrapper wrapper{n, camera_topic, service_name};
-    ros::Rate rate(10);
+    ros::Rate rate(30);
     while(ros::ok()){
         ros::spinOnce();
         rate.sleep();

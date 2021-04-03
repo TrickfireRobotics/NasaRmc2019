@@ -5,24 +5,9 @@
             footprint_frame: base_footprint
             bin_frame: bin_footprint
             odom_frame: odom 
-            rate: 10
+            rate: 16
         </rosparam>
 
         <remap from="image" to="/sensors/rear_cam/image_raw"/>
     </node>
-
-    <node name="front_fiducial_odom_publisher" pkg="tfr_sensor" type="fiducial_odom_publisher" output="screen">
-        <rosparam>
-            camera_frame: front_cam_link
-            footprint_frame: base_footprint
-            bin_frame: bin_footprint
-            odom_frame: odom 
-            rate: 10
-        </rosparam>
-
-        <remap from="image" to="/sensors/front_cam/image_raw"/>
-    </node>
-
-
-
 </launch>

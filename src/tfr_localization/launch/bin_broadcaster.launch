@@ -2,12 +2,12 @@
     <!--spins up a settable broadcaster for the location of the bin-->
     <node name="bin_broadcaster" pkg="tfr_utilities" output="screen" type="point_broadcaster">
         <rosparam>
-            parent_frame: odom 
+            parent_frame: odom
             point_frame: bin_footprint
             service_name: localize_bin
-            hz: 10
+            hz: 16
             #rear camera height adjustment
-            height: -0.16 
+            height: -0.33 
         </rosparam>
     </node>
 </launch>

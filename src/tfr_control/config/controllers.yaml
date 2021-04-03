@@ -37,7 +37,7 @@ left_tread_velocity_controller:
     type: effort_controllers/JointVelocityController
     joint: left_tread_joint
     pid: { 
-        p: 2000.0, 
+        p: 1500.0, 
         i: 0.0, 
         d: 0.00
     }
@@ -45,17 +45,21 @@ left_tread_velocity_controller:
 right_tread_velocity_controller:
     type: effort_controllers/JointVelocityController
     joint: right_tread_joint
-    pid: { 
-        p: 2000.0, 
-        i: 0.0,
-        d: 0.00
+    pid: {
+    p: 1500.0,
+    i: 0.0,
+    d: 0.00
     }
 
 
-# bin_position_controller:
- #   type: effort_controllers/JointPositionController
-#   joint: bin_joint
-
+bin_position_controller:
+    type: effort_controllers/JointPositionController
+    joint: bin_joint
+    pid: { 
+    p: 500.0, 
+    i: 0.0,
+    d: 0.00
+    }
 # Controls all the joints of the main part of the arm
 arm_controller:
     type: position_controllers/JointGroupPositionController

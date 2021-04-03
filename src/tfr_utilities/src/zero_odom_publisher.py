@@ -22,7 +22,7 @@ class OdometryFaker(object):
     def __init__(self):
         self.trans = None
         self.odom = None
-        self.position = [0,0,0]
+        self.position = [10,0,0]
         self.lin_vel = [0,0,0]
         self.lin_acc = [0,0,0]
         self.th = 0

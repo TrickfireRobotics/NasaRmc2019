@@ -1,7 +1,7 @@
 
 obstacle_range: 1.0
 raytrace_range: 1.5
-footprint: [[-0.4, -0.16],  [0.4, -0.16], [0.4, 0.16], [-0.4, 0.16]]
+footprint: [[-0.5, -0.23],  [0.5, -0.23], [0.5, 0.23], [-0.5, 0.23]]
 observation_sources: point_cloud_sensor
 
 point_cloud_sensor: {
