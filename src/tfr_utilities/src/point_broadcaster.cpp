@@ -86,10 +86,10 @@ int main(int argc, char** argv)
 
     //broadcast the point across the network
     ros::Rate rate(hz);
-    while(ros::ok())
-    {
+    //while(ros::ok())
+    //{
         broadcaster.broadcast();
         ros::spinOnce();
-        rate.sleep();
-    }
+        //rate.sleep();
+    //}
 }
