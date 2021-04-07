@@ -89,7 +89,7 @@ int main(int argc, char** argv)
     while(ros::ok())
     {
         broadcaster.broadcast();
-        ros::spin();
+        ros::spinOnce();
         rate.sleep();
     }
 }
