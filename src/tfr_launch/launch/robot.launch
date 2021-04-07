@@ -1,6 +1,5 @@
 <!--The main launch file for the robot-->
 <launch>
-    <include file="$(find tfr_localization)/launch/bin_broadcaster.launch"/>
     <include file="$(find tfr_launch)/launch/core.launch"/>
     <include file="$(find tfr_executive)/launch/executive.launch"/>
     <include file="$(find tfr_sensor)/launch/sensor.launch"/>
