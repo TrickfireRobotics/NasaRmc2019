@@ -3,24 +3,13 @@
  * Node:    monitoring_battery
  *
  * Purpose: This is a subscriber that will listen to the voltage output of the
- *battery. When the battery is outputting
+ *	    battery. When the battery is outputting 37 volts or less, it will print a 
+ *	    warning message to terminal
  *
  ****************************************************************************************/
 
 #include "ros/ros.h"
 #include <std_msgs/UInt16.h>
-
-<<<<<<< HEAD
-void batteryVoltageCallback(const std_msgs::UInt16 &batteryVoltage) {
-  // Roboteq controller sends voltage * 10 back i.e. if 150 is reported than it
-  // is 15 volts. What is reported is diveded by 10 to get the actual voltage.
-  int batteryVolt = batteryVoltage.data / 10;
-  // if battery voltage is below 37 than it needs to be charged
-  if (batteryVolt < 37) {
-    ROS_ERROR("BATTERY LOW! CHARGE NOW! (%d volts)\n", batteryVolt);
-  }
-=======
-
 
 void batteryVoltageCallback(const std_msgs::UInt16& batteryVoltage) {
 	//Roboteq controller sends voltage * 10 back i.e. if 150 is reported than it is 15 volts.
@@ -28,7 +17,6 @@ void batteryVoltageCallback(const std_msgs::UInt16& batteryVoltage) {
         if (batteryVolt < 37) {
         	ROS_ERROR("BATTERY LOW! CHARGE NOW! (%d volts)\n", batteryVolt);
         }
->>>>>>> 71c30e1ea1f68124202cc84ea9c4316dfef0c354
 }
 
 int main(int argc, char **argv) {
