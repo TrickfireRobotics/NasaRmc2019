@@ -4,7 +4,7 @@
  *
  * Purpose: This is a subscriber that will listen to the voltage output of the
  *	    battery. When the battery is outputting 37 volts or less, it will print a 
- *	    warning message to terminal
+ *	    warning message to terminal.
  *
  ****************************************************************************************/
 
