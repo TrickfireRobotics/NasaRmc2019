@@ -23,15 +23,15 @@
  * Initializes the broadcaster and data structures
  * */
 PointBroadcaster::PointBroadcaster(
-        ros::NodeHandle& n, 
-        const std::string &point_frame, 
-        const std::string &parent_frame, 
-        const std::string &service, const double& h) : 
-    node{n}, 
-    service_name{service}, 
+        ros::NodeHandle& n,
+        const std::string &point_frame,
+        const std::string &parent_frame,
+        const std::string &service, const double& h) :
+    node{n},
+    service_name{service},
     height{h}
 {
-    server = node.advertiseService(service_name, &PointBroadcaster::localizePoint, this);
+    // server = node.advertiseService(service_name, &PointBroadcaster::localizePoint, this);
 
     transform.header.frame_id = parent_frame;
     transform.child_frame_id = point_frame;
@@ -86,10 +86,10 @@ int main(int argc, char** argv)
 
     //broadcast the point across the network
     ros::Rate rate(hz);
-    while(ros::ok())
-    {
+    //while(ros::ok())
+    //{
         broadcaster.broadcast();
-        ros::spinOnce();
-        rate.sleep();
-    }
+        ros::spin(); //Once();
+        //rate.sleep();
+    //}
 }
