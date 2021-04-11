@@ -3,7 +3,7 @@
     <node name="bin_broadcaster" pkg="tfr_utilities" output="screen" type="point_broadcaster">
         <rosparam>
             parent_frame: odom
-            point_frame: bin_footprint
+            point_frame: base_footprint
             service_name: localize_bin
             hz: 16
             #rear camera height adjustment
