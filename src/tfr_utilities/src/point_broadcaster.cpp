@@ -87,7 +87,7 @@ int main(int argc, char** argv)
     geometry_msgs::PoseStamped processed_pose;
     processed_pose.pose.position.z = 0;
     processed_pose.header.stamp = ros::Time::now();
-    tfr_msgs::PoseSrv::Request request{};
+    tfr_msgs::PoseSrv::Request request;
     request.pose = processed_pose;
     tfr_msgs::PoseSrv::Response response;
 
