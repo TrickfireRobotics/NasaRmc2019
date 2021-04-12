@@ -1,5 +1,4 @@
 #include <point_broadcaster.h>
-#include <tfr_msgs/PoseSrv.h>
 
 /**
  *  Utility node
@@ -98,7 +97,7 @@ int main(int argc, char** argv)
     //while(ros::ok())
     //{
         //broadcaster.broadcast();
-        ros::spin() //Once();
+        ros::spin(); //Once();
         //rate.sleep();
     //}
     broadcaster.localizePoint()
