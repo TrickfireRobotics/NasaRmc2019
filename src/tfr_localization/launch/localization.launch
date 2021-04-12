@@ -7,5 +7,5 @@
             yaw_threshold: 0.10
         </rosparam>
     </node>
-    <include file="$(find tfr_localization)/launch/bin_broadcaster.launch"/>
+    <!--<include file="$(find tfr_localization)/launch/bin_broadcaster.launch"/>-->
 </launch>
