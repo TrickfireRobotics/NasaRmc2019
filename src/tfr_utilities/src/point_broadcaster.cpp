@@ -99,5 +99,5 @@ int main(int argc, char** argv)
         ros::spin(); //Once();
         //rate.sleep();
     //}
-    broadcaster.localizePoint()
+    broadcaster.localizePoint();
 }
