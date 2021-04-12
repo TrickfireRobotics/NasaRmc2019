@@ -90,7 +90,6 @@ int main(int argc, char** argv)
     tfr_msgs::PoseSrv::Request request{};
     request.pose = processed_pose;
     tfr_msgs::PoseSrv::Response response;
-    output.pose = processed_pose.pose;
 
     //broadcast the point across the network
     ros::Rate rate(hz);
