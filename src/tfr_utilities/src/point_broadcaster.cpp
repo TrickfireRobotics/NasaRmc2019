@@ -52,14 +52,10 @@ void PointBroadcaster::broadcast()
  * Gives the point a new origin
  * */
 
-tfr_msgs::PoseSrv::Request request{};
-request.pose = processed_pose;
-tfr_msgs::PoseSrv::Response response;
-output.pose = processed_pose.pose;
-
 bool PointBroadcaster::localizePoint(tfr_msgs::PoseSrv::Request &request,
         tfr_msgs::PoseSrv::Response &response)
 {
+    
     transform.transform.translation.x = request.pose.pose.position.x;
     ROS_INFO("request.pose.pose.position.x value is %f", request.pose.pose.position.x);
     ROS_INFO("transform.transform.translation.x value is %f", transform.transform.translation.x);
@@ -90,6 +86,11 @@ int main(int argc, char** argv)
 
     PointBroadcaster broadcaster{n, point_frame, parent_frame, service_name,
         height};
+    
+    tfr_msgs::PoseSrv::Request request{};
+    request.pose = processed_pose;
+    tfr_msgs::PoseSrv::Response response;
+    output.pose = processed_pose.pose;
 
     //broadcast the point across the network
     ros::Rate rate(hz);
