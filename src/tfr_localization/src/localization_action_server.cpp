@@ -120,24 +120,24 @@ class Localizer
                     processed_pose.header.stamp = ros::Time::now();
 
                     //send the message
-                    tfr_msgs::PoseSrv::Request request{};
-                    request.pose = processed_pose;
-                    tfr_msgs::PoseSrv::Response response;
-                    output.pose = processed_pose.pose;
+                    //tfr_msgs::PoseSrv::Request request{};
+                    //request.pose = processed_pose;
+                    //tfr_msgs::PoseSrv::Response response;
+                    //output.pose = processed_pose.pose;
                     
 
-                    while(true) {
-                        if (checkPreempt(output, success)) {break;} 
-                        if(ros::service::call("/localize_bin", request, response)) {
-                            ROS_INFO("localized");
-                            tfr_msgs::LocalizationResult result;
-                            odometry = false;
-                            set = true;
-                            break;
-                        } else {
-                            ROS_INFO("Localization Action Server: retrying to localize movable point");
-                        }
-                    }
+                    //while(true) {
+                        //if (checkPreempt(output, success)) {break;} 
+                        //if(ros::service::call("/localize_bin", request, response)) {
+                            //ROS_INFO("localized");
+                            //tfr_msgs::LocalizationResult result;
+                            //odometry = false;
+                            //set = true;
+                            //break;
+                        //} else {
+                            //ROS_INFO("Localization Action Server: retrying to localize movable point");
+                        //}
+                    //}
 
                     auto siny = +2.0 * 
                         (processed_pose.pose.orientation.w * processed_pose.pose.orientation.z + 
