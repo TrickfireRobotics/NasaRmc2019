@@ -41,6 +41,7 @@ class PointBroadcaster
         PointBroadcaster& operator=(PointBroadcaster&&) = delete;
 
         void broadcast();
+        bool localizePoint();
 
     private:
         ros::NodeHandle &node;
