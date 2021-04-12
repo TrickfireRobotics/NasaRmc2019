@@ -4,7 +4,7 @@
             camera_frame: rear_cam_link
             footprint_frame: base_footprint
             bin_frame: bin_footprint
-            odom_frame: odom 
+            odometry_frame: bin_footprint
             rate: 16
         </rosparam>
 
