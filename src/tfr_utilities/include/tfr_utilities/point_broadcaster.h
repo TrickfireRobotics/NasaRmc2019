@@ -41,7 +41,8 @@ class PointBroadcaster
         PointBroadcaster& operator=(PointBroadcaster&&) = delete;
 
         void broadcast();
-        bool localizePoint();
+        bool localizePoint(tfr_msgs::PoseSrv::Request &request,
+            tfr_msgs::PoseSrv::Response &response);
 
     private:
         ros::NodeHandle &node;
