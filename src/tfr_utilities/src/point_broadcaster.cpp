@@ -1,4 +1,5 @@
 #include <point_broadcaster.h>
+#include <tfr_msgs/PoseSrv.h>
 
 /**
  *  Utility node
@@ -50,8 +51,14 @@ void PointBroadcaster::broadcast()
 /*
  * Gives the point a new origin
  * */
+
+tfr_msgs::PoseSrv::Request request{};
+request.pose = processed_pose;
+tfr_msgs::PoseSrv::Response response;
+output.pose = processed_pose.pose;
+
 bool PointBroadcaster::localizePoint(tfr_msgs::PoseSrv::Request &request,
-        tfr_msgs::PoseSrv::Response &resonse)
+        tfr_msgs::PoseSrv::Response &response)
 {
     transform.transform.translation.x = request.pose.pose.position.x;
     ROS_INFO("request.pose.pose.position.x value is %f", request.pose.pose.position.x);
@@ -86,10 +93,11 @@ int main(int argc, char** argv)
 
     //broadcast the point across the network
     ros::Rate rate(hz);
-    while(ros::ok())
-    {
-        broadcaster.broadcast();
-        ros::spinOnce();
-        rate.sleep();
-    }
+    //while(ros::ok())
+    //{
+        //broadcaster.broadcast();
+        ros::spin() //Once();
+        //rate.sleep();
+    //}
+    broadcaster.localizePoint()
 }
