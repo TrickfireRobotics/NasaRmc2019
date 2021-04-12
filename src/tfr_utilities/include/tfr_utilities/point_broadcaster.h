@@ -51,9 +51,5 @@ class PointBroadcaster
         ros::ServiceServer server;
         const std::string &service_name;
         const double& height;
-
-        bool localizePoint(tfr_msgs::PoseSrv::Request &request,
-                tfr_msgs::PoseSrv::Response &response);
-
 };
 #endif
