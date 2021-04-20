@@ -98,7 +98,6 @@ namespace tfr_mission_control {
       	    // For subscribing to joy messages for joystick input.
             // Constants for joy array indices are defined in joy_indices.h.
       	    ros::Subscriber joySub;
-
             // Flag for accepting teleop commands.
             std::atomic<bool> teleopEnabled;
 

@@ -1,0 +1,3 @@
+<launch>
+    <node name="monitoring_battery" pkg="tfr_monitoring" type="monitoring_battery" output="screen"/>
+</launch>

@@ -137,7 +137,6 @@ class DrivebaseOdometryPublisher
         msg.header.stamp = ros::Time::now();
         msg.header.frame_id = parent_frame;
         msg.child_frame_id = child_frame;
-        //Drivebase odometry should not be reporting position to our kalman filter to reduce error. This information can be extrapolated from the velocities.  
         msg.pose.pose.position.x = x;
         msg.pose.pose.position.y = y;
         msg.pose.pose.position.z = 0;
@@ -148,7 +147,7 @@ class DrivebaseOdometryPublisher
             0,    0, 1e-1,    0,    0,    0,
             0,    0,    0, 1e-1,    0,    0,
             0,    0,    0,    0, 1e-1,    0,
-            0,    0,    0,    0,    0, 1e-1 }; 
+            0,    0,    0,    0,    0, 1e-1 };
 
         msg.twist.twist.linear.x = v_x;
         msg.twist.twist.linear.y = v_y;

@@ -13,6 +13,8 @@
             max_ang_vel: 0.6 
             ang_tolerance: 0.1
             image_service_name: /on_demand/rear_cam/image_raw
+            half_robot_length: 0.5
+            adjust_distance: 0.3
         </rosparam>
     </node>
 </launch>

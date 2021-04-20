@@ -54,6 +54,8 @@ bool PointBroadcaster::localizePoint(tfr_msgs::PoseSrv::Request &request,
         tfr_msgs::PoseSrv::Response &resonse)
 {
     transform.transform.translation.x = request.pose.pose.position.x;
+    ROS_INFO("request.pose.pose.position.x value is %f", request.pose.pose.position.x);
+    ROS_INFO("transform.transform.translation.x value is %f", transform.transform.translation.x);
     transform.transform.translation.y = request.pose.pose.position.y;
     transform.transform.translation.z = -height;
     transform.transform.rotation.x = request.pose.pose.orientation.x;

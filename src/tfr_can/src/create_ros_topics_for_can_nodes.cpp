@@ -20,7 +20,7 @@ const std::string busname = "can1";
 // "1M", "500K", "125K", "100K", "50K", "20K", "10K" and "5K".
 const std::string baudrate = "250K";
 
-const size_t num_devices_required = 7;
+const size_t num_devices_required = 4;
 
 const double loop_rate = 32; // 32 Hz
 const int slow_loop_rate = 1; // 1 Hz
@@ -103,6 +103,15 @@ void setupServoCylinderDevice(kaco::Device& device, kaco::Bridge& bridge, std::s
     
     auto iosub_7 = std::make_shared<kaco::EntrySubscriber>(device, "profile_deceleration");
     bridge.add_subscriber(iosub_7);
+
+    auto iopub_8 = std::make_shared<kaco::EntryPublisher>(device, "position_demand");
+    bridge.add_publisher(iopub_8, slow_loop_rate);
+
+    auto iopub_9 = std::make_shared<kaco::EntryPublisher>(device, "positioning_option_code");
+    bridge.add_publisher(iopub_9, slow_loop_rate);
+    
+    auto iosub_9 = std::make_shared<kaco::EntrySubscriber>(device, "positioning_option_code");
+    bridge.add_subscriber(iosub_9);
 }
 
 void setupMaxonDevice(kaco::Device& device, kaco::Bridge& bridge, std::string& eds_files_path)
@@ -318,7 +327,11 @@ int main(int argc, char* argv[]) {
 
             auto iopub_8_2_6 = std::make_shared<kaco::EntryPublisher>(device, "qry_abcntr/channel_2");
     		bridge.add_publisher(iopub_8_2_6, loop_rate);
-			
+		
+		//Reads battery voltage	
+		auto iopub_8 = std::make_shared<kaco::EntryPublisher>(device, "qry_volts/v_bat");
+    		bridge.add_publisher(iopub_8, loop_rate);
+
 		}
 		
 		

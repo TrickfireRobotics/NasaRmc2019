@@ -25,20 +25,20 @@ print_diagnostics: true
 #See the LPMS IMU driver to see what is being published.
 #This is messaging the change in yaw over time.
 imu0: /sensors/imu
-imu0_config: [true, true, true,
+imu0_config: [false, false, false,
               false, false, false,
               false, false, false,
-              true, true, true,
+              false, false, false,
               true, true, true]
-imu0_differential: false
+imu0_differential: true
 imu0_nodelay: false
 imu0_relative: true
 #outputs at ~200 hz so want to average a lot of values
-imu0_queue_size: 12 
+imu0_queue_size: 75
 imu0_remove_gravitational_acceleration: true
-imu0_pose_rejection_threshold: 0.8  
-imu0_twist_rejection_threshold: 0.8              
-imu0_linear_acceleration_rejection_threshold: 0.8  
+imu0_pose_rejection_threshold: 1.8  
+imu0_twist_rejection_threshold: 1.8              
+imu0_linear_acceleration_rejection_threshold: 1.8  
 
 #basic 2d configuration for the fiducial odom publisher we don't use it's
 #velocity, because it is very unreliable, and we get good velocity 
@@ -60,14 +60,14 @@ odom0_queue_size: 6
 #This is the drivebase controller. 
 #This is also measuring the change in yaw over time to counteract error. 
 odom1: /drivebase_odom
-odom1_config: [true, true,  false,
-               false, false,  true,
-               true, false, false,
-               false,  false,  true,
+odom1_config: [false, false,  false,
+               false, false,  false,
+               false, false, false,
+               false,  false,  false,
                false,  false,  false]
 odom1_differential: false 
 odom1_relative: false
-odom1_queue_size: 32
+odom1_queue_size: 16
 odom1_nodelay: false
 use_control: true
 control_config: [true, false, false, false, false, true]
@@ -105,15 +105,15 @@ process_noise_covariance: [0.05, 0,    0,    0,    0,    0,    0,     0,     0, 
                            0,    0,    0,    0.03, 0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
                            0,    0,    0,    0,    0.03, 0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
                            0,    0,    0,    0,    0,    0.06, 0,     0,     0,    0,    0,    0,    0,    0,    0,
-                           0,    0,    0,    0,    0,    0,    0.025, 0,     0,    0,    0,    0,    0,    0,    0,
+                           0,    0,    0,    0,    0,    0,    0.25, 0,     0,    0,    0,    0,    0,    0,    0,
                            0,    0,    0,    0,    0,    0,    0,     0.025, 0,    0,    0,    0,    0,    0,    0,
                            0,    0,    0,    0,    0,    0,    0,     0,     0.04, 0,    0,    0,    0,    0,    0,
                            0,    0,    0,    0,    0,    0,    0,     0,     0,    0.01, 0,    0,    0,    0,    0,
                            0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0.01, 0,    0,    0,    0,
                            0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0.02, 0,    0,    0,
-                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0.01, 0,    0,
-                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0.01, 0,
-                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0.015]
+                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0.1, 0,    0,
+                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0.1, 0,
+                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0.15]
 
     # [ADVANCED] This represents the initial value for the state estimate error covariance matrix. Setting a diagonal
     # value (variance) to a large value will result in rapid convergence for initial measurements of the variable in

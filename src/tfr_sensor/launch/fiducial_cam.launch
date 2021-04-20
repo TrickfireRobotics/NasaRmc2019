@@ -1,12 +1,12 @@
 <launch>
     <node name="front_cam_tf_broadcaster" pkg="tf2_ros" type="static_transform_publisher"
-        args="0.48 0.076 0.139 0 0 0 1 base_link front_cam_link"/>
+        args="0.52 -0.06 0.005 0 0 0 1 base_link front_cam_link"/>
     <node name="front_cam" pkg="cv_camera" type="cv_camera_node" output="screen">
         <rosparam>
             # using GRAY8 in the pipeline below reduces the total size of the images, improving efficiency
-            file: "nvarguscamerasrc sensor-id=2 ! video/x-raw(memory:NVMM), width=(int)1348, height=(int)750,format=(string)NV12, framerate=(fraction)60/1 ! nvvidconv flip-method=2 ! video/x-raw(ANY), format=(string)GRAY8 ! appsink"
+            file: "nvarguscamerasrc sensor-id=2 ! video/x-raw(memory:NVMM), width=(int)1920, height=(int)1080,format=(string)NV12, framerate=(fraction)30/1 ! nvvidconv flip-method=2 ! video/x-raw(ANY), format=(string)GRAY8 ! appsink"
             frame_id: front_cam_link
-            rate: 60
+            rate: 30
         </rosparam>
         <param name="camera_info_url" value="file://$(find tfr_sensor)/calib/front_4056x3040.yaml"/>
     </node>
@@ -16,13 +16,12 @@
             service_name: /on_demand/front_cam/image_raw
         </rosparam>
     </node>
-    
     <node name="rear_cam_tf_broadcaster" pkg="tf2_ros" type="static_transform_publisher"
-        args="-0.48 -0.076 0.267 0 0 1 0 base_link rear_cam_link"/>
+        args="-0.45 0 0.24 0 0 1 0 base_link rear_cam_link"/>
     <node name="rear_cam" pkg="cv_camera" type="cv_camera_node" output="screen">
         <rosparam>
-            file: "nvarguscamerasrc sensor-id=0 ! video/x-raw(memory:NVMM), width=(int)1348, height=(int)750,format=(string)NV12, framerate=(fraction)60/1 ! nvvidconv flip-method=2 ! video/x-raw(ANY), format=(string)GRAY8 ! appsink"
-            rate: 60
+            file: "nvarguscamerasrc sensor-id=0 ! video/x-raw(memory:NVMM), width=(int)1920, height=(int)1080,format=(string)NV12, framerate=(fraction)30/1 ! nvvidconv flip-method=2 ! video/x-raw(ANY), format=(string)GRAY8 ! appsink"
+            rate: 30
             frame_id: rear_cam_link
         </rosparam>
         <param name="camera_info_url" value="file://$(find tfr_sensor)/calib/rear_4056x3040.yaml"/>

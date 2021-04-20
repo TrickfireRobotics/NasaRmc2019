@@ -1,343 +1,180 @@
-#include <ros/ros.h>
-#include <geometry_msgs/Twist.h>
-#include <std_msgs/Int32.h>
-#include <std_msgs/Float64.h>
-#include <tfr_msgs/EmptyAction.h>
-#include <tfr_msgs/ArucoAction.h>
-#include <tfr_msgs/WrappedImage.h>
-#include <tfr_msgs/BinStateSrv.h>
-#include <tfr_utilities/control_code.h>
-#include <tfr_utilities/arm_manipulator.h>
-#include <sensor_msgs/Image.h>
-#include <image_transport/image_transport.h>
-#include <actionlib/server/simple_action_server.h>
-#include <actionlib/client/simple_action_client.h>
 /*
- * The dumping action server, it backs up the rover into the navigational aid
- * slowly.
+ * First checks fiducual odometry for distance from dumping location
  *
- * Its first step is to make sure it can see the aruco board, it will abort the
- * mission if it can't. 
+ * Next, checks drivebase odometry distance
  *
- * It backs up at a set speed until it get's really close and loses sight of the
- * board. When it is blind, it drives straight back, goes slower. 
+ * Then, moves backwards until the displacement of the drivebase odometry
+ * is greater than or equal to the original distance from the dumping
+ * location according to fiducial odometry.
  *
- * It stops when the light detector get's triggered.
+ * Next, Raises bin.
  *
- * It requires a service where it can get the most recent image on demand for
- * the camera of interest for backing up. 
+ * FInally, lowers bin
  *
- * This is currently filled by the camera_topic_wrapper in sensors
- *
- * published topics:
- *   -/cmd_vel geometry_msgs/Twist the drivebase velocity
- *   -/bin_position_controller/command std_msgs/Float64 the position of the bin
- *
+ * published topic: -/cmd_vel geometry_msgs/Twist the drivebase velocity
  * */
-class Dumper
-{
-    public:        
-        struct DumpingConstraints
-        {
-            private:
-                double min_lin_vel, max_lin_vel, min_ang_vel, max_ang_vel, ang_tolerance;
-            public:
-                DumpingConstraints(double min_lin, double max_lin, 
-                        double min_ang, double max_ang, double ang_tol):
-                    min_lin_vel(min_lin), max_lin_vel(max_lin),
-                    min_ang_vel(min_ang), max_ang_vel(max_ang),
-                    ang_tolerance(ang_tol){}
-                double getMinLinVel() const {return min_lin_vel;}
-                double getMaxLinVel() const {return max_lin_vel;}
-                double getMinAngVel() const {return min_ang_vel;}
-                double getMaxAngVel() const {return max_ang_vel;}
-                double getAngTolerance() const {return ang_tolerance;}
-        };
 
-        
-        Dumper(ros::NodeHandle &node, const std::string &service_name,
-                const DumpingConstraints &c) :
-            server{node, "dump", boost::bind(&Dumper::dumpBinContents, this, _1), false},
-            image_client{node.serviceClient<tfr_msgs::WrappedImage>(service_name)},
-            velocity_publisher{node.advertise<geometry_msgs::Twist>("cmd_vel", 10)},
-            bin_publisher{node.advertise<std_msgs::Float64>("/bin_position_controller/command", 10)},
-			can_bin_publisher_1{node.advertise<std_msgs::Int32>("/device12/set_cmd_cango/cmd_cango_1", 2)},
-			can_bin_publisher_2{node.advertise<std_msgs::Int32>("/device12/set_cmd_cango/cmd_cango_2", 2)},
-            detector{"light_detection"},
-            aruco{"aruco_action_server",true},
-            constraints{c},
-            arm_manipulator{node}
-        {
+#include <actionlib/client/simple_action_client.h>
+#include <actionlib/server/simple_action_server.h>
+#include <geometry_msgs/Twist.h>
+#include <image_transport/image_transport.h>
+#include <math.h>
+#include <nav_msgs/Odometry.h>
+#include <ros/ros.h>
+#include <sensor_msgs/Image.h>
+#include <std_msgs/Float64.h>
+#include <std_msgs/Int32.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tfr_msgs/ArucoAction.h>
+#include <tfr_msgs/BinStateSrv.h>
+#include <tfr_msgs/EmptyAction.h>
+#include <tfr_msgs/WrappedImage.h>
+#include <tfr_utilities/arm_manipulator.h>
+#include <tfr_utilities/control_code.h>
+
+
+
+class Dumper {
+public:
+  
+  Dumper(ros::NodeHandle &node, const std::string &service_name, float half_robot_length, float adjust_distance):
+         server{node, "dump", boost::bind(&Dumper::dumpBinContents, this, _1), false},
+         half_robot_length{half_robot_length}, adjust_distance{adjust_distance},
+         drivebase_publisher{node.advertise<geometry_msgs::Twist>("cmd_vel", 5)},
+         fiducialOdomSubscriber{node.subscribe("/fiducial_odom", 5, &Dumper::fiducialOdomCallback, this)},
+         filteredOdomSubscriber{node.subscribe("/odometry/filtered", 5, &Dumper::filteredOdomCallback, this)},
+         arm_manipulator{node} {
             ROS_INFO("dumping action server initializing");
-			bin_command_extend.data = 1000;
-			bin_command_retract.data = -1000;
-            detector.waitForServer();
-            aruco.waitForServer();
             server.start();
             ROS_INFO("dumping action server initialized");
-        }
+  }
 
-        ~Dumper() = default;
-        Dumper(const Dumper&) = delete;
-        Dumper& operator=(const Dumper&) = delete;
-        Dumper(Dumper&&) = delete;
-        Dumper& operator=(Dumper&&) = delete;
-	
-    private:
-        actionlib::SimpleActionServer<tfr_msgs::EmptyAction> server;
-        actionlib::SimpleActionClient<tfr_msgs::EmptyAction> detector;
-        actionlib::SimpleActionClient<tfr_msgs::ArucoAction> aruco;
-
-        ros::ServiceClient image_client;
-        ros::Publisher velocity_publisher;
-        ros::Publisher bin_publisher;
-		ros::Publisher can_bin_publisher_1;
-		ros::Publisher can_bin_publisher_2;
-		
-		std_msgs::Int32 bin_command_extend;
-		std_msgs::Int32 bin_command_retract;
-
-        ArmManipulator arm_manipulator;
-
-        const DumpingConstraints &constraints; 
-		
-        /*
-         Action
-            Verify position relative to the bin by signaling the ArUco system.
-            If the position is off, reposition and repeat step 1.
-            Otherwise, signal the dumping sensor to begin looking for high-fidelity position verification (the implementation of which has not yet been decided).
-            Signal the Drivebase to slowly back the rover, making angle corrections as needed.
-            If the Dumping Sensor signals the position has been achieved, signal the Drivebase to stop moving.
-            Signal the Bin Controller to dump collected material.
-            When the Bin Controller signals it is done, signal Executive to indicate dumping complete.
-			
-		 *  Pre:  The robot can detect the aruco board from its current position. 
-		 *  Post: The robot has dumped its material into the bin. The robot has signaled Executive a Finished signal.
-		 
-		 *  For testing, the subscribed topic should have mock information on for the aruco board.
-		    Because this method does not return a value and takes a non-valid goal, aruco and executive class stubs will be required in order to perform unit testing.
-         */
-		 
-        void dump(const tfr_msgs::EmptyGoalConstPtr &goal) 
-        {  
-            ROS_INFO("dumping action server started dumping procedure");
-            //check to make sure we can see the board
-            tfr_msgs::ArucoResult initial_estimate{};
-            getArucoEstimate(initial_estimate);
-            if (initial_estimate.number_found == 0)
-            {
-                server.setAborted();
-                return;
-            }
-
-            //initialize
-            tfr_msgs::EmptyGoal empty_goal{};
-            detector.sendGoal(empty_goal);
-
-            //loop until we see the light
-            while (detector.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
-            {
-                //handle preemption
-                if (server.isPreemptRequested()|| !ros::ok())
-                {
-                    stopMoving();
-                    server.setPreempted();
-                    return;
-                }
+  Dumper(const Dumper &) = delete;
+  Dumper &operator=(const Dumper &) = delete;
+  Dumper(Dumper &&) = delete;
+  Dumper &operator=(Dumper &&) = delete;
+  ~Dumper() = default;
 
 
-                //get the most recent aruco reading
-                tfr_msgs::ArucoResult estimate{};
-                getArucoEstimate(estimate);
+private:
+  actionlib::SimpleActionServer<tfr_msgs::EmptyAction> server;
 
-                //send motor commands
-                if (estimate.number_found == 0)
-                    moveBlind();
-                else
-                {
-                    geometry_msgs::Twist cmd{};
-                    updateControlMsg(estimate, cmd);
-                    velocity_publisher.publish(cmd);
-                }
-            }
+  ros::Publisher drivebase_publisher;
 
-            //we detected the light, stop moving immediately
-            stopMoving();
-            ROS_INFO("dumping action server detected light raising bin");
-            arm_manipulator.moveArm(0.0, 0.1, 1.07, 1.5);
-            ros::Duration(3.0).sleep();
-            arm_manipulator.moveArm(0.87, 0.1, 1.07, 1.5);
-            ros::Duration(3.0).sleep();
-            std_msgs::Float64 bin_cmd;
-            bin_cmd.data = tfr_utilities::JointAngle::BIN_MAX;
-            tfr_msgs::BinStateSrv query;
-			
-			extendBin();
-            if (server.isPreemptRequested())
-            {
-                ROS_INFO("Teleop Action Server: DUMP preempted");
-                server.setPreempted();
-                return;
-            }
-            else if (!server.isActive() || !ros::ok())
-            {
-                ROS_INFO("Teleop Action Server: DUMP preempted");
-                server.setAborted();
-                return;
-            }
-             server.setSucceeded();
-        }
+  ros::Subscriber fiducialOdomSubscriber;
+  ros::Subscriber filteredOdomSubscriber;
+  
+  float half_robot_length, adjust_distance;
+  float currentFiducialDistance, originalFiducialDistance;
+  float currentTreadDistanceX, currentTreadDistanceY, actualCurrentTreadDistance;
+  float originalTreadDistanceX, originalTreadDistanceY, actualOriginalTreadDistance;
+  float movedDistance = 0;
 
-		void dumpBinContents(const tfr_msgs::EmptyGoalConstPtr &goal)
-		{
-			dumpBinContents();
-		}
+  geometry_msgs::Twist move_cmd{};
 
-		void dumpBinContents()
-		{
-			extendBin();
-			
-			ros::Duration(10.0).sleep();
-			
-			retractBin();
-		}
+  ArmManipulator arm_manipulator;
 
-		void extendBin()
-		{
-			//const double dumping_extend_time = 20.0;
-			const int num_loop_iterations = 200; // 20 seconds
-			int cur_loop_iteration = 0;
-            while (!server.isPreemptRequested() && ros::ok() && cur_loop_iteration < num_loop_iterations)
-            {
-				/*
-                ros::service::call("bin_state", query);
-                using namespace tfr_utilities;
-                if (JointAngle::BIN_MAX - query.response.state < 0.1)
-                    break;
-                bin_publisher.publish(bin_cmd);
-                ros::Duration(0.1).sleep();
-				*/
 
-				can_bin_publisher_1.publish(bin_command_extend);
-				can_bin_publisher_2.publish(bin_command_extend);
-				cur_loop_iteration++;
-				ros::Duration(0.1).sleep();
-            }	
-		}
-		
-		void retractBin()
-		{
-			const int num_loop_iterations = 200; // 20 seconds
-			int cur_loop_iteration = 0;
-            while (!server.isPreemptRequested() && ros::ok() && cur_loop_iteration < num_loop_iterations)
-            {
-				
-				can_bin_publisher_1.publish(bin_command_retract);
-				can_bin_publisher_2.publish(bin_command_retract);
-				cur_loop_iteration++;
-				ros::Duration(0.1).sleep();
-				
-            }	
-		}
 
-        /*
-         *  Back up and turn slightly to match the orientation of the aruco board
-         * */
-        void updateControlMsg(const tfr_msgs::ArucoResult &estimate,
-                geometry_msgs::Twist &cmd)
-        {
-            //back up
-            auto siny = +2.0 * (estimate.relative_pose.pose.orientation.w * estimate.relative_pose.pose.orientation.z + estimate.relative_pose.pose.orientation.x * estimate.relative_pose.pose.orientation.y);
-            auto cosy = +1.0 - 2.0 * (estimate.relative_pose.pose.orientation.y * estimate.relative_pose.pose.orientation.y +  estimate.relative_pose.pose.orientation.z * estimate.relative_pose.pose.orientation.z );  
-            auto angle = atan2(siny, cosy);
-            ROS_INFO("ang %f", angle);
-            if (3.14159 - std::abs(angle) > constraints.getAngTolerance())
-            {
-                /*
-                 * Maintenence note:
-                 *
-                 * How do we decide if we are going left or right?
-                 * 
-                 * We'll the estimate will return a pose describing displacement from our
-                 * rear camera, a +y displacement means the center of the board is to the
-                 * left(ccw), -y to the right (cw). 
-                 *
-                 * This conforms to rep 103
-                 * */
-                int sign = (angle < 0) ? 1 : -1;
-                cmd.linear.x = 0;
-                cmd.angular.z = sign*constraints.getMaxAngVel();
-            }
-            
-            else
-            {
-                cmd.linear.x = -1 * constraints.getMaxLinVel();
-            }
-        }
+  // continually upddating but only needed to set original fiducial distance
+  void fiducialOdomCallback(const nav_msgs::Odometry &dumpDistance) {
+    currentFiducialDistance = dumpDistance.pose.pose.position.x;
+  }
 
-        /*
-         * back up slowwwwly we can't see
-         * */
-		 // The comment above pretty well sums up this method.
-        void moveBlind()
-        {
-            ROS_INFO("backing up blind");
-            geometry_msgs::Twist cmd{};
-            cmd.linear.x = -1*constraints.getMinLinVel();
-            cmd.angular.z = 0;
-            velocity_publisher.publish(cmd);
-        }
+  // continually updating actualCurrentTreadDistance so we can know how far the robot has moved
+  void filteredOdomCallback(const nav_msgs::Odometry &treadDistance) {
+    currentTreadDistanceX = treadDistance.pose.pose.position.x;
+    currentTreadDistanceY = treadDistance.pose.pose.position.y;
+    // distance formula
+    actualCurrentTreadDistance = sqrt((currentTreadDistanceX * currentTreadDistanceX) +
+                                      (currentTreadDistanceY * currentTreadDistanceY));
+    // this was done because I think the distance formula was resulting in the wrong sign,
+    // so I just flipped it
+    actualCurrentTreadDistance = -actualCurrentTreadDistance;
+  }
+  
+  
+  
+  // moves backwards until the moved distance is equal to or greater than the original fiducial odometry distance
+  void moveNotBlind() {
+    ROS_INFO("Dumping Action Server: Command Recieved, BACKWARD");
+    move_cmd.linear.x = -.1;
+    drivebase_publisher.publish(move_cmd);
+    
+    ROS_INFO("Original Tread Distance starting at %f", actualOriginalTreadDistance);
+    ROS_INFO("Original Fiducial Distance starting at %f", originalFiducialDistance);
+    ROS_INFO("Original Current Tread Distance Starting at %f", actualCurrentTreadDistance);
+    
+    while (movedDistance < originalFiducialDistance) {
+      movedDistance = (actualOriginalTreadDistance - actualCurrentTreadDistance) +
+                       half_robot_length + adjust_distance;
+    }
+    
+    ROS_INFO("Original Tread Distance Finished at %f", actualOriginalTreadDistance);
+    ROS_INFO("Original Fiducial Distance Finished at %f", originalFiducialDistance);
+    ROS_INFO("Original Current Tread Distance Finished at %f", actualCurrentTreadDistance);
+    ROS_INFO("Dumping Action Server: BACKWARD finsihed");
+  }
 
-        /*
-         *  Stop Moving 
-         * */
-        void stopMoving()
-        {
-            geometry_msgs::Twist cmd{};
-            cmd.linear.x = 0;
-            cmd.angular.z = 0;
-            velocity_publisher.publish(cmd);
-        }
+  void stopMoving() {
+    ROS_INFO("Dumping Action Server: Command Recieved, STOP");
+    move_cmd.linear.x = 0;
+    drivebase_publisher.publish(move_cmd);
+    ROS_INFO("Dumping Action Server: STOP finshed");
+  }
 
-        /*
-         * Gets the most recent position estimate from the aruco service
-         */
-        void getArucoEstimate(tfr_msgs::ArucoResult &result)
-        {
-            tfr_msgs::WrappedImage image_request{};
-            tfr_msgs::ArucoGoal goal{};
-            while (!image_client.call(image_request));
+  void extendBin() {
+    ROS_INFO("Dumping Action Server: Command Recieved, DUMP");
+    arm_manipulator.moveLeftBinPosition(5.0);  // Extend left bin actuator
+    arm_manipulator.moveRightBinPosition(5.0); // Extend right bin actuator
+    ROS_INFO("Dumping Action Server: DUMP finished");
+  }
 
-            goal.image = image_request.response.image;
-            goal.camera_info = image_request.response.camera_info;
-            
-            aruco.sendGoal(goal);
-            aruco.waitForResult();
+  void retractBin() {
+    ROS_INFO("Dumping Action Server: Command Recieved, RESET_DUMPING");
+    arm_manipulator.moveLeftBinPosition(1.0);  // Retract left bin actuator
+    arm_manipulator.moveRightBinPosition(1.0); // Retract right bin actuator
+    ROS_INFO("Dumping Action Server: DUMPING_RESET finished");
+  }
 
-            result = *aruco.getResult();
-        }
+  // where the actions of dumping are called
+  void dumpBinContents(const tfr_msgs::EmptyGoalConstPtr &goal) {
+    // sleep makes sure robot is not moving so fiducial odom is accurate as possible
+    // when original fiducial distance is set
+    ros::Duration(4.0).sleep();
+
+    originalFiducialDistance = currentFiducialDistance;
+    actualOriginalTreadDistance = actualCurrentTreadDistance;
+
+    moveNotBlind();
+
+    stopMoving();
+    ros::Duration(2.0).sleep();
+
+    extendBin();
+    ros::Duration(10.0).sleep();
+
+    retractBin();
+    ros::Duration(10.0).sleep();
+  }
 };
 
-/* 
- * 
- * 
- * 
- */
-int main(int argc, char **argv)
-{
-    ros::init(argc, argv, "dumping_action_server");
-    ros::NodeHandle n;
-    double min_lin_vel, max_lin_vel, min_ang_vel, max_ang_vel, ang_tolerance;
-    ros::param::param<double>("~min_lin_vel",min_lin_vel, 0);
-    ros::param::param<double>("~max_lin_vel",max_lin_vel, 0);
-    ros::param::param<double>("~min_ang_vel",min_ang_vel, 0);
-    ros::param::param<double>("~max_ang_vel",max_ang_vel, 0);
-    ros::param::param<double>("~ang_tolerance",ang_tolerance, 0);
-    std::string service_name;
-    ros::param::param<std::string>("~image_service_name", service_name, "");
-    Dumper::DumpingConstraints constraints(min_lin_vel, max_lin_vel,
-            min_ang_vel, max_ang_vel, ang_tolerance);
-    Dumper dumper(n, service_name, constraints);
-    ros::spin();
-    return 0;
+
+
+int main(int argc, char **argv) {
+  ros::init(argc, argv, "dumping_action_server");
+  ros::NodeHandle n;
+
+  float half_robot_length, adjust_distance;
+  ros::param::param<float>("~half_robot_length", half_robot_length, 0);
+  ros::param::param<float>("~adjust_distance", adjust_distance, 0);
+
+  std::string service_name;
+  ros::param::param<std::string>("~image_service_name", service_name, "");
+
+  Dumper dumper(n, service_name, half_robot_length, adjust_distance);
+
+  ros::Rate rate(10);
+  ros::spin();
+  return 0;
 }
