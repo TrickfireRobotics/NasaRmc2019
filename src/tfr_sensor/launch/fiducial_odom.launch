@@ -2,7 +2,7 @@
     <node name="fiducial_odom_publisher" pkg="tfr_sensor" type="fiducial_odom_publisher" output="screen">
         <rosparam>
             camera_frame: rear_cam_link
-            footprint_frame: base_footprint
+            footprint_frame: odom
             bin_frame: bin_footprint
             odometry_frame: bin_footprint
             rate: 16
