@@ -1,6 +1,6 @@
 <launch>
     <node name="front_cam_tf_broadcaster" pkg="tf2_ros" type="static_transform_publisher"
-        args="0.48 0.00 0.005 0 0 0 1 base_link front_cam_link"/>
+        args="0.48 0.00 0.005 0 0 0 1 odom front_cam_link"/>
     <node name="front_cam" pkg="cv_camera" type="cv_camera_node" output="screen">
         <rosparam>
             # using GRAY8 in the pipeline below reduces the total size of the images, improving efficiency
@@ -17,7 +17,7 @@
         </rosparam>
     </node>
     <node name="rear_cam_tf_broadcaster" pkg="tf2_ros" type="static_transform_publisher"
-        args="-0.45 0 0.24 0 0 1 0 base_link rear_cam_link"/>
+        args="-0.45 0 0.24 0 0 1 0 odom rear_cam_link"/>
     <node name="rear_cam" pkg="cv_camera" type="cv_camera_node" output="screen">
         <rosparam>
             file: "nvarguscamerasrc sensor-id=0 ! video/x-raw(memory:NVMM), width=(int)1920, height=(int)1080,format=(string)NV12, framerate=(fraction)30/1 ! nvvidconv flip-method=2 ! video/x-raw(ANY), format=(string)GRAY8 ! appsink"
