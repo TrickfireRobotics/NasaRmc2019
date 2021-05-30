@@ -6,6 +6,6 @@
     </group>
     <remap from="/imu/data" to="/sensors/imu" />
     <node name="imu_tf_broadcaster" pkg="tf2_ros" type="static_transform_publisher"
-        args="-0.155 -0.11 0.254 0 0 0 base_footprint imu"/>
+        args="-0.155 -0.11 0.254 0 0 0 base_link imu"/>
     <node name="ig1_node" pkg="openzen_sensor" type="openzen_sensor_node"/>
 </launch>
